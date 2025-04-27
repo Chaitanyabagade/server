@@ -37,7 +37,12 @@ wss.on('connection', (ws) => {
 
   // Handle incoming messages from the client
   ws.on('message', (message) => {
-    console.log('Received from client:', message);
+    // If the message is a buffer, convert it to a string
+    if (Buffer.isBuffer(message)) {
+      message = message.toString(); // Convert buffer to string
+    }
+
+    console.log('Received from client:', message);  // Print actual received message
 
     // Respond back to the client
     ws.send(`Server received: ${message}`);
@@ -54,6 +59,65 @@ wss.on('connection', (ws) => {
   });
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Middleware to parse JSON data from POST requests
 app.use(express.json());
 
