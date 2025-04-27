@@ -13,7 +13,6 @@ app.post('/execute', (req, res) => {
     if (!command) {
         return res.status(400).json({ error: 'No command provided' });
     }
-
     exec(command, { shell: '/data/data/com.termux/files/usr/bin/bash' }, (error, stdout, stderr) => {
         if (error) {
             return res.status(500).json({ 
@@ -86,7 +85,7 @@ app.post('/hook', (req, res) => {
 
 // Your server route setup
 app.get('/data', (req, res) => {
-  res.send('Server. is fine and it is working correctly and updated but not showing on console.');
+  res.send('now it is full cicd with automated');
 });
 
 app.listen(PORT, () => {
