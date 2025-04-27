@@ -44,7 +44,14 @@ wss.on('connection', (ws) => {
 
     console.log('Received from client:', message);  // Print actual received message
 
-    // Respond back to the client
+    // Broadcast the message to all connected WebSocket clients
+    wss.clients.forEach((client) => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(message); // Send message to all other connected clients
+      }
+    });
+
+    // Optionally respond back to the sender client
     ws.send(`Server received: ${message}`);
   });
 
@@ -58,6 +65,7 @@ wss.on('connection', (ws) => {
     console.error('WebSocket error:', error);
   });
 });
+
 
 
 
