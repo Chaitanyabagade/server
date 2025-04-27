@@ -97,9 +97,8 @@ app.post('/hook', (req, res) => {
       });
     });
   });
-});
+});    
 
-// Your server route setup
 app.get('/data', (req, res) => {
   res.send('Server is working correctly and updated.');
 });
