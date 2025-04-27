@@ -67,7 +67,7 @@ app.post('/hook', (req, res) => {  // Changed from 'get' to 'post'
 
 // Your server route setup
 app.get('/data', (req, res) => {
-  res.send('server is working perfectly and updated correctly and also this is from my vs code to commit and server updated');
+  res.send('server is wod updated correctly and also this is from my vs code to commit and server updated');
 });
 
 // Start the server
