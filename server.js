@@ -5,43 +5,13 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors());
-app.use(bodyParser.json());
-
-app.post('/execute', (req, res) => {
-    const { command } = req.body;
-    if (!command) {
-        return res.status(400).json({ error: 'No command provided' });
-    }
-    exec(command, { shell: '/data/data/com.termux/files/usr/bin/bash' }, (error, stdout, stderr) => {
-        if (error) {
-            return res.status(500).json({ 
-                error: error.message,
-                stderr: stderr
-            });
-        }
-        res.json({
-            output: stdout
-        });
-    });
-});
 
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////  This is default code for updateing the new changes on the server so don;t remove this  ///////////////
 
 const PORT = 4001;
-
 // Middleware to parse JSON data from POST requests
-
-
 app.use(express.json());
-
-
-
-
-
 // Route to handle webhook for updating the server
 app.post('/hook', (req, res) => {
   console.log('Received a request to update the server...');
@@ -84,10 +54,11 @@ app.post('/hook', (req, res) => {
 });
 
 // Your server route setup
-app.get('/data', (req, res) => {
-  res.send('now it is full cicd with automated with auto connect in pc');
+app.get('/status', (req, res) => {
+  res.send('now it is full cicd with automated with auto connection tryies');
 });
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+//////////////////// end of server update ////////////////////////////////////////////////////////////////////////////////
