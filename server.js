@@ -85,7 +85,7 @@ app.post('/hook', (req, res) => {
 
 // Your server route setup
 app.get('/data', (req, res) => {
-  res.send('now it is full cicd with automated');
+  res.send('now it is full cicd with automated with auto connect in pc');
 });
 
 app.listen(PORT, () => {
