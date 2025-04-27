@@ -119,7 +119,7 @@ app.post('/hook', (req, res) => {
       return;
     }
 
-    
+
     console.log(`Git pull output: ${stdout}`);
 
     // Step 2: Run npm install to install dependencies
@@ -149,5 +149,5 @@ app.post('/hook', (req, res) => {
 
 // Your server route setup
 app.get('/data', (req, res) => {
-  res.send('Server is working correctly and updated.');
+  res.send('Server is working correctly and updated but not showing on console.');
 });
