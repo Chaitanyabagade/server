@@ -119,6 +119,7 @@ app.post('/hook', (req, res) => {
       return;
     }
 
+    
     console.log(`Git pull output: ${stdout}`);
 
     // Step 2: Run npm install to install dependencies
