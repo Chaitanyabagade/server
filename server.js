@@ -149,5 +149,5 @@ app.post('/hook', (req, res) => {
 
 // Your server route setup
 app.get('/data', (req, res) => {
-  res.send('Server. is working correctly and updated but not showing on console.');
+  res.send('Server. is fine and it is working correctly and updated but not showing on console.');
 });
