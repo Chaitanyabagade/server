@@ -1,102 +1,32 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const { exec } = require('child_process');
-const mysql = require('mysql2');
-const WebSocket = require('ws'); // Import the WebSocket library
+const cors = require('cors');
+
 const app = express();
-const port = 4001;
+const PORT = 3000;
 
-// Create a WebSocket server and associate it with the HTTP server
-const server = app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+app.use(cors());
+app.use(bodyParser.json());
 
-// Your usual database connection and server setup
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'mydb',
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('Database connection failed: ' + err.stack);
-    return;
-  }
-  console.log('Connected to database successfully.');
-});
-
-
-// Define the WebSocket server on top of the existing HTTP server
-const wss = new WebSocket.Server({ server });
-
-// Define the clients set outside of the WebSocket connection handler
-const clients = new Set();
-
-// WebSocket connection handler
-wss.on('connection', (ws) => {
-  console.log('New WebSocket connection established.');
-
-  // Add new client to the set
-  clients.add(ws);
-
-  // Send a message to the client when they connect
-  ws.send('Welcome to the WebSocket server!');
-
-  // Handle incoming messages from the client
-  ws.on('message', (message) => {
-    try {
-      console.log('Received from client:', message);
-
-      // Broadcast the message to all other clients except the sender
-      clients.forEach(client => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(`Received from another user: ${message}`);
-        }
-      });
-    } catch (error) {
-      console.error('Error processing message:', error);
-      ws.send('Error: Unable to process your message.');
+app.post('/execute', (req, res) => {
+    const { command } = req.body;
+    if (!command) {
+        return res.status(400).json({ error: 'No command provided' });
     }
-  });
 
-  // Handle connection close
-  ws.on('close', () => {
-    console.log('WebSocket connection closed.');
-    clients.delete(ws); // Remove client from the set when they disconnect
-  });
-
-  // Handle errors
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
-  });
+    exec(command, { shell: '/data/data/com.termux/files/usr/bin/bash' }, (error, stdout, stderr) => {
+        if (error) {
+            return res.status(500).json({ 
+                error: error.message,
+                stderr: stderr
+            });
+        }
+        res.json({
+            output: stdout
+        });
+    });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -104,6 +34,10 @@ wss.on('connection', (ws) => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Middleware to parse JSON data from POST requests
 app.use(express.json());
+
+
+
+
 
 // Route to handle webhook for updating the server
 app.post('/hook', (req, res) => {
@@ -150,4 +84,8 @@ app.post('/hook', (req, res) => {
 // Your server route setup
 app.get('/data', (req, res) => {
   res.send('Server. is fine and it is working correctly and updated but not showing on console.');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
