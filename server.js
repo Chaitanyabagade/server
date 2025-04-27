@@ -66,7 +66,6 @@ wss.on('connection', (ws) => {
   });
 });
 
-
 app.get('/data', (req, res) => {
   res.send('Server is working correctly and updated.');
 });
