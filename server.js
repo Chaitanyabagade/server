@@ -60,8 +60,7 @@ app.use(express.json());
 // Route to handle webhook for updating the server
 app.post('/hook', (req, res) => {
   console.log('Received a request to update the server...');
-
-  // Log the payload to see what GitHub is sending
+    // Log the payload to see what GitHub is sending
   console.log('Payload:', req.body);
 
   // Step 1: Pull the latest code from the 'main' branch
