@@ -54,9 +54,9 @@ app.post('/hook', (req, res) => {
 });
 
 // Your server route setup
-let count=0;
+
 app.get('/status', (req, res) => {
-  res.send(`now it is full cicd with automated with auto connection tryies ${count++}`);
+  res.send(`now it is full cicd with automated with auto connection tryies `);
 });
 
 app.listen(PORT, () => {
