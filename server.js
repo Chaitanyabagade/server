@@ -10,8 +10,6 @@ const server = app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 
-const wss = new WebSocket.Server({ server }); // Create WebSocket server on top of the existing HTTP server
-
 // Your usual database connection and server setup
 const db = mysql.createConnection({
   host: 'localhost',
@@ -28,6 +26,13 @@ db.connect((err) => {
   console.log('Connected to database.');
 });
 
+
+// Define the WebSocket server on top of the existing HTTP server
+const wss = new WebSocket.Server({ server });
+
+// Define the clients set outside of the WebSocket connection handler
+const clients = new Set();
+
 // WebSocket connection handler
 wss.on('connection', (ws) => {
   console.log('New WebSocket connection established.');
@@ -40,14 +45,19 @@ wss.on('connection', (ws) => {
 
   // Handle incoming messages from the client
   ws.on('message', (message) => {
-    console.log('Received from client:', message);
+    try {
+      console.log('Received from client:', message);
 
-    // Broadcast the message to all other clients except the sender
-    clients.forEach(client => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(`Received from another user: ${message}`);
-      }
-    });
+      // Broadcast the message to all other clients except the sender
+      clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+          client.send(`Received from another user: ${message}`);
+        }
+      });
+    } catch (error) {
+      console.error('Error processing message:', error);
+      ws.send('Error: Unable to process your message.');
+    }
   });
 
   // Handle connection close
@@ -61,36 +71,6 @@ wss.on('connection', (ws) => {
     console.error('WebSocket error:', error);
   });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
