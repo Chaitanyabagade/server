@@ -46,7 +46,7 @@ app.post('/hook', (req, res) => {
   console.log('Payload:', req.body);
 
   // Step 1: Pull the latest code from the 'main' branch
-  exec('git pull origin main', (err, stdout, stderr) => {
+  exec('git fetch --all && git reset --hard origin/main', (err, stdout, stderr) => {
     if (err) {
       console.error(`Error pulling latest changes: ${stderr}`);
       res.status(500).send('Error pulling latest code.');
