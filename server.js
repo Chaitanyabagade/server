@@ -11,8 +11,6 @@ const PORT = 4001;
 // Create a regular HTTP server (needed for WebSocket upgrade)
 const server = createServer(app);
 
-// Create a WebSocket server on top of the HTTP server
-const wss = new WebSocketServer({ server });
 
 app.use(express.json());
 
@@ -23,49 +21,52 @@ app.get('/status', (req, res) => {
 });
 
 // Handle WebSocket connections
+const WebSocket = require('ws'); // Import the WebSocket library
 
-// Function to broadcast messages to all EXCEPT the sender
-let clients = [];  // Store connected clients
-let updateMessage = "Server is ready for updates!";  // Default message for updates
+// Define the WebSocket server on top of the existing HTTP server
+const wss = new WebSocket.Server({ server });
 
-// Middleware to parse JSON data from POST request
-app.use(express.json());
+// Define the clients set outside of the WebSocket connection handler
+const clients = new Set();
 
-// Handle WebSocket connection
+// WebSocket connection handler
 wss.on('connection', (ws) => {
-  // Add the new client to the clients list
-  clients.push(ws);
-  
-  // Notify all clients about the new connection
-  broadcastMessage('Someone connected', ws);
+  console.log('New WebSocket connection established.');
 
-  // When a message is received, broadcast it to all other clients
+  // Add new client to the set
+  clients.add(ws);
+
+  // Send a message to the client when they connect
+  ws.send('Welcome to the WebSocket server!');
+
+  // Handle incoming messages from the client
   ws.on('message', (message) => {
-    console.log('Received message:', message);
-    broadcastMessage(message, ws);
-  });
+    try {
+      console.log('Received from client:', message);
 
-  // When a client disconnects
-  ws.on('close', () => {
-    // Remove client from the list
-    clients = clients.filter(client => client !== ws);
-    broadcastMessage('Someone disconnected', ws);
-  });
-
-  // Error handling for the WebSocket
-  ws.on('error', (error) => {
-    console.log('WebSocket error:', error);
-  });
-});
-
-// Function to send a message to all clients, except the sender
-function broadcastMessage(message, sender) {
-  clients.forEach(client => {
-    if (client !== sender) {
-      client.send(message);
+      // Broadcast the message to all other clients except the sender
+      clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+          client.send(`Received from another user: ${message}`);
+        }
+      });
+    } catch (error) {
+      console.error('Error processing message:', error);
+      ws.send('Error: Unable to process your message.');
     }
   });
-}
+
+  // Handle connection close
+  ws.on('close', () => {
+    console.log('WebSocket connection closed.');
+    clients.delete(ws); // Remove client from the set when they disconnect
+  });
+
+  // Handle errors
+  ws.on('error', (error) => {
+    console.error('WebSocket error:', error);
+  });
+});
 
 // Start both HTTP and WebSocket servers
 server.listen(PORT, () => {
