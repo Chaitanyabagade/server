@@ -14,7 +14,7 @@ app.post('/hook', updateServer);  // Use the updateServer function directly
 
 // Your server route setup
 app.get('/status', (req, res) => {
-  res.send(`now it is full cicd with automated with auto connection tryies but it is very best idea not a any problem`);
+  res.send(`server is updated`);
 });
 
 app.listen(PORT, () => {
