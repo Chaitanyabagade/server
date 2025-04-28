@@ -23,22 +23,37 @@ app.get('/status', (req, res) => {
 });
 
 // Handle WebSocket connections
-wss.on('connection', (ws) => {
-  console.log('New WebSocket client connected!');
 
-  ws.on('message', (message) => {
-    console.log(`Received message: ${message}`);
+// Function to broadcast messages to all EXCEPT the sender
+function broadcastExceptSender(message, sender) {
+  wss.clients.forEach(function each(client) {
+    if (client !== sender && client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
 
-    // Broadcast the message to all connected clients
-    wss.clients.forEach(client => {
-      if (client.readyState === ws.OPEN) {
-        client.send(`Server received: ${message}`);
-      }
-    });
+wss.on('connection', function connection(ws) {
+  console.log('New client connected.');
+
+  // Notify others that a user connected
+  broadcastExceptSender('A user connected.', ws);
+
+  ws.on('message', function incoming(message) {
+    console.log('Received:', message);
+
+    // Broadcast message to all other clients
+    broadcastExceptSender(message, ws);
   });
 
-  ws.send('Welcome! You are connected to the WebSocket server!');
+  ws.on('close', () => {
+    console.log('Client disconnected.');
+
+    // Notify others that a user disconnected
+    broadcastExceptSender('A user disconnected.', ws);
+  });
 });
+
 
 // Start both HTTP and WebSocket servers
 server.listen(PORT, () => {
