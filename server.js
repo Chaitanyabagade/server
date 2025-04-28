@@ -16,7 +16,7 @@ app.use(express.json());
 app.post('/hook', updateServer);
 
 app.get('/status', (req, res) => {
-  res.send(`now it is full cicd with automated with auto connection tryies but it is very best idea not a any problem`);
+  res.send(`yes this is works fine with cicd`);
 });
 
 // Handle WebSocket connections
