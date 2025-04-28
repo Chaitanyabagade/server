@@ -56,7 +56,7 @@ app.post('/hook', (req, res) => {
 // Your server route setup
 
 app.get('/status', (req, res) => {
-  res.send(`now it is full cicd with automated with auto connection tryies `);
+  res.send(`now it is full cicd with automated with auto connection tryies but it is very best idea `);
 });
 
 app.listen(PORT, () => {
