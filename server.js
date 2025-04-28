@@ -33,33 +33,32 @@ const clients = new Set();
 wss.on('connection', (ws) => {
   console.log('New WebSocket connection established.');
 
-  // Add new client to the set
-  clients.add(ws);
-
   // Send a message to the client when they connect
   ws.send('Welcome to the WebSocket server!');
 
   // Handle incoming messages from the client
   ws.on('message', (message) => {
-    try {
-      console.log('Received from client:', message);
-
-      // Broadcast the message to all other clients except the sender
-      clients.forEach(client => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(`Received from another user: ${message}`);
-        }
-      });
-    } catch (error) {
-      console.error('Error processing message:', error);
-      ws.send('Error: Unable to process your message.');
+    // If the message is a buffer, convert it to a string
+    if (Buffer.isBuffer(message)) {
+      message = message.toString(); // Convert buffer to string
     }
+
+    console.log('Received from client:', message);  // Print actual received message
+
+    // Broadcast the message to all connected WebSocket clients
+    wss.clients.forEach((client) => {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(message); // Send message to all other connected clients
+      }
+    });
+
+    // Optionally respond back to the sender client
+    ws.send(`Server received: ${message}`);
   });
 
   // Handle connection close
   ws.on('close', () => {
     console.log('WebSocket connection closed.');
-    clients.delete(ws); // Remove client from the set when they disconnect
   });
 
   // Handle errors
