@@ -1,22 +1,39 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { updateServer } = require('./serverUpdate');  // Import the update logic
+const { exec } = require('child_process');
 
-const app = express();
-const PORT = 4001;
+function updateServer(req, res) {
+  console.log('Received a request to update the server...');
+  console.log('Payload:', req.body);
 
-// Middleware to parse JSON data from POST requests
-app.use(express.json());
+  exec('git fetch --all && git reset --hard origin/main', (err, stdout, stderr) => {
+    if (err) {
+      console.error(`Error pulling latest changes: ${stderr}`);
+      res.status(500).send('Error pulling latest code.');
+      return;
+    }
 
-// Route to handle webhook for updating the server
-app.post('/hook', updateServer);  // Use the updateServer function directly
+    console.log(`Git pull output: ${stdout}`);
 
-// Your server route setup
-app.get('/status', (req, res) => {
-  res.send(`server is updated`);
-});
+    exec('npm install', (err, stdout, stderr) => {
+      if (err) {
+        console.error(`Error installing dependencies: ${stderr}`);
+        res.status(500).send('Error installing dependencies.');
+        return;
+      }
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+      console.log(`npm install output: ${stdout}`);
+
+      exec('pm2 restart server.js', (err, stdout, stderr) => {
+        if (err) {
+          console.error(`Error restarting server: ${stderr}`);
+          res.status(500).send('Error restarting the server.');
+          return;
+        }
+
+        console.log(`Server restart output: ${stdout}`);
+        res.send('Server updated, dependencies installed, and restarted successfully!');
+      });
+    });
+  });
+}
+
+module.exports = updateServer;  // <<< EXPORT ONLY FUNCTION, NOT { updateServer }
