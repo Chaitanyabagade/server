@@ -8,7 +8,7 @@ const updateServer = require('./serverUpdate');
 const app = express();
 const PORT = 4001;
 
-// Create a regular HTTP server (needed for WebSocket upgrade)
+// Create HTTP server
 const server = createServer(app);
 
 app.use(express.json());
@@ -19,49 +19,58 @@ app.get('/status', (req, res) => {
   res.send(`yes this is works fine with cicd`);
 });
 
-// Handle WebSocket connections
-const WebSocket = require('ws'); // Import the WebSocket library
+// WebSocket server
+const WebSocket = require('ws');
 
-// Define the WebSocket server on top of the existing HTTP server
 const wss = new WebSocket.Server({ server });
 
-// WebSocket connection handler
+// Function to broadcast number of online clients
+function broadcastOnlineClients() {
+  const onlineCount = wss.clients.size; // Total connected clients
+  const message = JSON.stringify({ type: 'online', count: onlineCount });
+
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+}
+
 wss.on('connection', (ws) => {
   console.log('New WebSocket connection established.');
-
-  // Send a welcome message to the client when they connect
+  
+  // Send welcome message
   ws.send('Welcome to the WebSocket server!');
 
-  // Handle incoming messages from the client
+  // Broadcast updated online count
+  broadcastOnlineClients();
+
   ws.on('message', (message) => {
-    // If the message is a buffer, convert it to a string
     if (Buffer.isBuffer(message)) {
-      message = message.toString(); // Convert buffer to string
+      message = message.toString();
     }
 
-    console.log('Received from client:', message);  // Print actual received message
+    console.log('Received from client:', message);
 
-    // Broadcast the message to all connected WebSocket clients except the sender
+    // Broadcast the message to other clients
     wss.clients.forEach((client) => {
-      // Ensure the message is sent to clients that are not the sender
       if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(message); // Send message to all other connected clients
+        client.send(message);
       }
     });
   });
 
-  // Handle connection close
   ws.on('close', () => {
     console.log('WebSocket connection closed.');
+    broadcastOnlineClients(); // Update online count when someone leaves
   });
 
-  // Handle errors
   ws.on('error', (error) => {
     console.error('WebSocket error:', error);
   });
 });
 
-// Start both HTTP and WebSocket servers
+// Start server
 server.listen(PORT, () => {
   console.log(`Server is running (HTTP + WebSocket) on http://localhost:${PORT}`);
 });
