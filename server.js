@@ -11,7 +11,7 @@ app.use(express.json());
 app.post('/hook', updateServer);  // <<< now it is directly a function
 
 app.get('/status', (req, res) => {
-  res.send(`now it is updated with the serverUpdate.js file 2 time `);
+  res.send(`now it is updated with the serverUpdate.js file 2nd time `);
 });
 
 app.listen(PORT, () => {
