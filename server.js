@@ -11,7 +11,6 @@ const PORT = 4001;
 // Create a regular HTTP server (needed for WebSocket upgrade)
 const server = createServer(app);
 
-
 app.use(express.json());
 
 app.post('/hook', updateServer);
@@ -25,9 +24,6 @@ const WebSocket = require('ws'); // Import the WebSocket library
 
 // Define the WebSocket server on top of the existing HTTP server
 const wss = new WebSocket.Server({ server });
-
-// Define the clients set outside of the WebSocket connection handler
-const clients = new Set();
 
 // WebSocket connection handler
 wss.on('connection', (ws) => {
