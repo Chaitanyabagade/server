@@ -48,9 +48,6 @@ wss.on('connection', (ws) => {
         client.send(message); // Send message to all other connected clients
       }
     });
-
-    // Optionally respond back to the sender client
-    ws.send(`Server received: ${message}`);
   });
 
   // Handle connection close
