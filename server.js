@@ -43,6 +43,7 @@ wss.on('connection', (ws) => {
 
     // Broadcast the message to all connected WebSocket clients except the sender
     wss.clients.forEach((client) => {
+      // Ensure the message is sent to clients that are not the sender
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(message); // Send message to all other connected clients
       }
