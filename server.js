@@ -25,35 +25,47 @@ app.get('/status', (req, res) => {
 // Handle WebSocket connections
 
 // Function to broadcast messages to all EXCEPT the sender
-function broadcastExceptSender(message, sender) {
-  wss.clients.forEach(function each(client) {
-    if (client !== sender && client.readyState === WebSocket.OPEN) {
+let clients = [];  // Store connected clients
+let updateMessage = "Server is ready for updates!";  // Default message for updates
+
+// Middleware to parse JSON data from POST request
+app.use(express.json());
+
+// Handle WebSocket connection
+wss.on('connection', (ws) => {
+  // Add the new client to the clients list
+  clients.push(ws);
+  
+  // Notify all clients about the new connection
+  broadcastMessage('Someone connected', ws);
+
+  // When a message is received, broadcast it to all other clients
+  ws.on('message', (message) => {
+    console.log('Received message:', message);
+    broadcastMessage(message, ws);
+  });
+
+  // When a client disconnects
+  ws.on('close', () => {
+    // Remove client from the list
+    clients = clients.filter(client => client !== ws);
+    broadcastMessage('Someone disconnected', ws);
+  });
+
+  // Error handling for the WebSocket
+  ws.on('error', (error) => {
+    console.log('WebSocket error:', error);
+  });
+});
+
+// Function to send a message to all clients, except the sender
+function broadcastMessage(message, sender) {
+  clients.forEach(client => {
+    if (client !== sender) {
       client.send(message);
     }
   });
 }
-
-wss.on('connection', function connection(ws) {
-  console.log('New client connected.');
-
-  // Notify others that a user connected
-  broadcastExceptSender('A user connected.', ws);
-
-  ws.on('message', function incoming(message) {
-    console.log('Received:', message);
-
-    // Broadcast message to all other clients
-    broadcastExceptSender(message, ws);
-  });
-
-  ws.on('close', () => {
-    console.log('Client disconnected.');
-
-    // Notify others that a user disconnected
-    broadcastExceptSender('A user disconnected.', ws);
-  });
-});
-
 
 // Start both HTTP and WebSocket servers
 server.listen(PORT, () => {
