@@ -11,7 +11,7 @@ app.use(express.json());
 app.post('/hook', updateServer);  // <<< now it is directly a function
 
 app.get('/status', (req, res) => {
-  res.send(`now it is full cicd with automated with auto connection tryies but it is very best idea not a any problem`);
+  res.send(`now it is updated with the serverUpdate.js file`);
 });
 
 app.listen(PORT, () => {
