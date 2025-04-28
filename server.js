@@ -33,7 +33,7 @@ const clients = new Set();
 wss.on('connection', (ws) => {
   console.log('New WebSocket connection established.');
 
-  // Send a message to the client when they connect
+  // Send a welcome message to the client when they connect
   ws.send('Welcome to the WebSocket server!');
 
   // Handle incoming messages from the client
@@ -45,7 +45,7 @@ wss.on('connection', (ws) => {
 
     console.log('Received from client:', message);  // Print actual received message
 
-    // Broadcast the message to all connected WebSocket clients
+    // Broadcast the message to all connected WebSocket clients except the sender
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(message); // Send message to all other connected clients
