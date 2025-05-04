@@ -61,5 +61,4 @@ function updateServer(req, res) {
     });
   });
 }
-
 module.exports = updateServer;
