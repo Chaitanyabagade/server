@@ -1,43 +1,31 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { createServer } = require('http');
-const { exec } = require('child_process'); 
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = 4001;
 
-// Create HTTP server
-const server = createServer(app);
-
-// ✅ Apply CORS middleware globally
 app.use(cors());
-
-// ✅ Parse JSON body
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 app.get('/status', (req, res) => {
-  res.send(`yes this is works fine with cicd with automatic insert update code with best auto update`);
+  res.send(`works perfect for command`);
 });
 app.post('/command', (req, res) => {
-  const command = req.body.command;
-  console.log("Command received:", command);
-  if (!command) {
-    return res.status(400).json({ error: 'Missing "command" in request body' });
+  const { command } = req.body;
+
+  if (!command || typeof command !== 'string') {
+    return res.status(400).json({ error: 'Invalid or missing command' });
   }
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      return res.status(500).json({ response: `Error: ${error.message}` });
+  exec(command, { cwd: __dirname }, (err, stdout, stderr) => {
+    if (err) {
+      return res.status(500).json({ error: stderr || err.message });
     }
-    if (stderr) {
-      return res.status(200).json({ response: `Stderr: ${stderr}` });
-    }
-    res.status(200).json({ response: stdout });
+    res.json({ response: stdout || 'Command executed successfully' });
   });
 });
 
-// Start server
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server is running (HTTP + WebSocket) on http://localhost:${PORT}`);
 });
