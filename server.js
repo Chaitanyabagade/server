@@ -1,31 +1,78 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const { exec } = require('child_process');
+const express = require("express");
+const bodyParser = require("body-parser");
+const { spawn } = require("child_process");
+const cors = require("cors");
 
 const app = express();
-const PORT = 4001;
-
 app.use(cors());
 app.use(bodyParser.json());
 
-app.get('/status', (req, res) => {
-  res.send(`works perfect for command`);
-});
-app.post('/command', (req, res) => {
+app.post("/command", (req, res) => {
   const { command } = req.body;
 
-  if (!command || typeof command !== 'string') {
-    return res.status(400).json({ error: 'Invalid or missing command' });
+  if (!command) {
+    return res.status(400).json({ error: "No command provided." });
   }
-  exec(command, { cwd: __dirname }, (err, stdout, stderr) => {
-    if (err) {
-      return res.status(500).json({ error: stderr || err.message });
+
+  const parts = command.split(" ");
+  const cmd = parts[0];
+  const args = parts.slice(1);
+
+  const child = spawn(cmd, args, { shell: true });
+  let output = "";
+  let lastOutput = "";
+  let stableTimer = null;
+
+  const finish = () => {
+    if (!res.headersSent) {
+      res.json({ response: output || "[No Output]" });
     }
-    res.json({ response: stdout || 'Command executed successfully' });
+    child.kill("SIGTERM");
+  };
+
+  const restartTimer = () => {
+    clearTimeout(stableTimer);
+    stableTimer = setTimeout(() => {
+      // if no new output came for 1 second, assume it's stable
+      if (output === lastOutput) {
+        finish();
+      } else {
+        lastOutput = output;
+        restartTimer();
+      }
+    }, 1000);
+  };
+
+  child.stdout.on("data", (data) => {
+    output += data.toString();
+    restartTimer();
   });
+
+  child.stderr.on("data", (data) => {
+    output += data.toString();
+    restartTimer();
+  });
+
+  child.on("error", (err) => {
+    res.status(500).json({ error: "Failed to execute command: " + err.message });
+  });
+
+  child.on("close", (code) => {
+    clearTimeout(stableTimer);
+    if (!res.headersSent) {
+      res.json({ response: output || "[No Output]" });
+    }
+  });
+
+  // Start initial timer in case there's no output
+  restartTimer();
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running (HTTP + WebSocket) on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
+});
+
+app.get('/status', (req, res) => {
+  res.send(`works perfect for command`);
 });
