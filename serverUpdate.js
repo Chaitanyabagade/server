@@ -5,60 +5,58 @@ function updateServer(req, res) {
   console.log('Received a request to update the server...');
   console.log('Payload:', req.body);
 
-  // First, perform git pull to fetch latest changes
+  // Step 1: Perform git pull to fetch latest changes
   exec('git fetch --all && git reset --hard origin/main', (err, stdout, stderr) => {
     if (err) {
       console.error(`Error pulling latest changes: ${stderr}`);
-      res.status(500).send('Error pulling latest code.');
-      return;
+      return res.status(500).send('Error pulling latest code.');
     }
 
     console.log(`Git pull output: ${stdout}`);
 
-    // After git pull, update the server.js file
+    // Step 2: Read the server.js file to make changes
     fs.readFile('./server.js', 'utf8', (err, data) => {
       if (err) {
         console.error('Error reading server.js:', err);
-        res.status(500).send('Error reading server.js file.');
-        return;
+        return res.status(500).send('Error reading server.js file.');
       }
 
+      // Modify server.js content
       const updatedData = `const updateServer = require('./serverUpdate');\n` + data;
       const finalData = updatedData + '\napp.post("/hook", updateServer);';
 
+      // Step 3: Write the updated data back to server.js
       fs.writeFile('./server.js', finalData, 'utf8', (err) => {
         if (err) {
           console.error('Error writing to server.js:', err);
-          res.status(500).send('Error updating server.js file.');
-          return;
+          return res.status(500).send('Error updating server.js file.');
         }
 
         console.log('server.js file updated successfully.');
 
-        // Install dependencies after updating the file
+        // Step 4: Install dependencies after updating the file
         exec('npm install', (err, stdout, stderr) => {
           if (err) {
             console.error(`Error installing dependencies: ${stderr}`);
-            res.status(500).send('Error installing dependencies.');
-            return;
+            return res.status(500).send('Error installing dependencies.');
           }
 
           console.log(`npm install output: ${stdout}`);
 
-          // Restart server after installing dependencies
+          // Step 5: Restart server after installing dependencies
           exec('pm2 restart server.js', (err, stdout, stderr) => {
             if (err) {
               console.error(`Error restarting server: ${stderr}`);
-              res.status(500).send('Error restarting the server.');
-              return;
+              return res.status(500).send('Error restarting the server.');
             }
 
             console.log(`Server restart output: ${stdout}`);
-            res.send('Server updated, dependencies installed, and restarted successfully!');
+            return res.send('Server updated, dependencies installed, and restarted successfully!');
           });
         });
       });
     });
   });
 }
+
 module.exports = updateServer;
