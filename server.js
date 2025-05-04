@@ -7,9 +7,11 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Command execution route
 app.post("/command", (req, res) => {
   const { command } = req.body;
 
+  // If no command is provided, return a 400 error
   if (!command) {
     return res.status(400).json({ error: "No command provided." });
   }
@@ -19,10 +21,12 @@ app.post("/command", (req, res) => {
   const args = parts.slice(1);
 
   const child = spawn(cmd, args, { shell: true });
+
   let output = "";
   let lastOutput = "";
   let stableTimer = null;
 
+  // Send response when output is stable
   const finish = () => {
     if (!res.headersSent) {
       res.json({ response: output || "[No Output]" });
@@ -30,33 +34,37 @@ app.post("/command", (req, res) => {
     child.kill("SIGTERM");
   };
 
+  // Restart timer each time there's output to check stability
   const restartTimer = () => {
     clearTimeout(stableTimer);
     stableTimer = setTimeout(() => {
-      // if no new output came for 1 second, assume it's stable
       if (output === lastOutput) {
         finish();
       } else {
         lastOutput = output;
         restartTimer();
       }
-    }, 1000);
+    }, 1000); // Check every second
   };
 
+  // Collect standard output data
   child.stdout.on("data", (data) => {
     output += data.toString();
-    restartTimer();
+    restartTimer(); // Restart the timer each time there's new output
   });
 
+  // Collect error output data
   child.stderr.on("data", (data) => {
     output += data.toString();
     restartTimer();
   });
 
+  // Handle errors during the command execution
   child.on("error", (err) => {
     res.status(500).json({ error: "Failed to execute command: " + err.message });
   });
 
+  // Ensure the response is sent when the process completes
   child.on("close", (code) => {
     clearTimeout(stableTimer);
     if (!res.headersSent) {
@@ -64,15 +72,17 @@ app.post("/command", (req, res) => {
     }
   });
 
-  // Start initial timer in case there's no output
+  // Start the timer immediately
   restartTimer();
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
+// Status route
 app.get('/status', (req, res) => {
   res.send(`works perfect for command`);
+});
+
+// Start server
+const PORT = 4001;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
