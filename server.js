@@ -18,17 +18,14 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/status', (req, res) => {
-  res.send(`yes this is works fine with cicd with automatic insert update code with best`);
+  res.send(`yes this is works fine with cicd with automatic insert update code with best auto update`);
 });
-
 app.post('/command', (req, res) => {
   const command = req.body.command;
   console.log("Command received:", command);
-
   if (!command) {
     return res.status(400).json({ error: 'Missing "command" in request body' });
   }
-
   exec(command, (error, stdout, stderr) => {
     if (error) {
       return res.status(500).json({ response: `Error: ${error.message}` });
