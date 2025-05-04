@@ -5,34 +5,37 @@ function updateServer(req, res) {
   console.log('Received a request to update the server...');
   console.log('Payload:', req.body);
 
-  fs.readFile('./server.js', 'utf8', (err, data) => {
+  // First, perform git pull to fetch latest changes
+  exec('git fetch --all && git reset --hard origin/main', (err, stdout, stderr) => {
     if (err) {
-      console.error('Error reading server.js:', err);
-      res.status(500).send('Error reading server.js file.');
+      console.error(`Error pulling latest changes: ${stderr}`);
+      res.status(500).send('Error pulling latest code.');
       return;
     }
 
-    const updatedData = `const updateServer = require('./serverUpdate');\n` + data;
-    const finalData = updatedData + '\napp.post("/hook", updateServer);';
+    console.log(`Git pull output: ${stdout}`);
 
-    fs.writeFile('./server.js', finalData, 'utf8', (err) => {
+    // After git pull, update the server.js file
+    fs.readFile('./server.js', 'utf8', (err, data) => {
       if (err) {
-        console.error('Error writing to server.js:', err);
-        res.status(500).send('Error updating server.js file.');
+        console.error('Error reading server.js:', err);
+        res.status(500).send('Error reading server.js file.');
         return;
       }
 
-      console.log('server.js file updated successfully.');
+      const updatedData = `const updateServer = require('./serverUpdate');\n` + data;
+      const finalData = updatedData + '\napp.post("/hook", updateServer);';
 
-      exec('git fetch --all && git reset --hard origin/main', (err, stdout, stderr) => {
+      fs.writeFile('./server.js', finalData, 'utf8', (err) => {
         if (err) {
-          console.error(`Error pulling latest changes: ${stderr}`);
-          res.status(500).send('Error pulling latest code.');
+          console.error('Error writing to server.js:', err);
+          res.status(500).send('Error updating server.js file.');
           return;
         }
 
-        console.log(`Git pull output: ${stdout}`);
+        console.log('server.js file updated successfully.');
 
+        // Install dependencies after updating the file
         exec('npm install', (err, stdout, stderr) => {
           if (err) {
             console.error(`Error installing dependencies: ${stderr}`);
@@ -42,6 +45,7 @@ function updateServer(req, res) {
 
           console.log(`npm install output: ${stdout}`);
 
+          // Restart server after installing dependencies
           exec('pm2 restart server.js', (err, stdout, stderr) => {
             if (err) {
               console.error(`Error restarting server: ${stderr}`);
