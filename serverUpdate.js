@@ -12,7 +12,7 @@ function updateServer(req, res) {
       return;
     }
 
-    const updatedData = `'const updateServer = require('./serverUpdate');\n` + data;
+    const updatedData = `const updateServer = require('./serverUpdate');\n` + data;
     const finalData = updatedData + '\napp.post("/hook", updateServer);';
 
     fs.writeFile('./server.js', finalData, 'utf8', (err) => {
@@ -57,4 +57,5 @@ function updateServer(req, res) {
     });
   });
 }
+
 module.exports = updateServer;

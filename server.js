@@ -2,8 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { createServer } = require('http');
-const { exec } = require('child_process'); // You forgot to import this
-const updateServer = require('./serverUpdate');
+const { exec } = require('child_process'); 
 
 const app = express();
 const PORT = 4001;
@@ -18,7 +17,6 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/hook', updateServer);
 
 app.get('/status', (req, res) => {
   res.send(`yes this is works fine with cicd`);
