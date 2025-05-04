@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.get('/status', (req, res) => {
-  res.send(`yes this is works fine with cicd`);
+  res.send(`yes this is works fine with cicd with automatic insert update code`);
 });
 
 app.post('/command', (req, res) => {
