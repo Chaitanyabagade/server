@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/status', (req, res) => {
-  res.send(`yes this is works fine with cicd with automatic insert update code nwh`);
+  res.send(`yes this is works fine with cicd with automatic insert update code with best`);
 });
 
 app.post('/command', (req, res) => {
